@@ -46,7 +46,7 @@ SHELL ["/bin/bash", "-c"]
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl squashfuse binfmt-support \
+    curl ca-certificates squashfuse binfmt-support \
     libncurses6 libtinfo6 \
     libsdl2-2.0-0 libepoxy0 libssl3 \
     && rm -rf /var/lib/apt/lists/*
