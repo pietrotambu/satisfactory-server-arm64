@@ -2,6 +2,8 @@
 
 This Docker container runs a Satisfactory dedicated server on ARM64 architecture using [FEX-Emu](https://github.com/FEX-Emu/FEX) for x86 emulation. Based on [nitrog0d/palworld-arm64](https://github.com/nitrog0d/palworld-arm64).
 
+> **ARM64 only.** This image runs on ARM64 hosts (e.g. Oracle Cloud Ampere, AWS Graviton). If you want to build the image yourself instead of pulling it, you must do so on an ARM64 machine — building on x86-64 will fail by design.
+
 ## Getting Started
 
 1. **Clone the repository**:
@@ -14,23 +16,19 @@ This Docker container runs a Satisfactory dedicated server on ARM64 architecture
 
    ```
    mkdir -p satisfactory config
-   sudo chmod 777 satisfactory config
    sudo chmod +x init-server.sh
    ```
 
-   Or with `chown` (replace `USER_ID:GROUP_ID` with your user's IDs, e.g. `1000:1000`):
+   The container's `steam` user runs as UID `1000`. If your host user is also UID `1000` (the default on most Ubuntu servers), the directories you just created are already owned correctly — nothing else needed.
+
+   If your host user has a different UID, transfer ownership:
    ```
-   sudo chown -R USER_ID:GROUP_ID satisfactory config
+   sudo chown -R 1000:1000 satisfactory config
    ```
 
-   > **Oracle Cloud (OCI):** The `opc` user has IDs `1000:1000`. The `ubuntu` user uses `1001:1001`.
+   > **Oracle Cloud (OCI):** The `ubuntu` user has IDs `1001:1001`, so the `chown` step is required. The older `opc` user uses `1000:1000` and does not need it.
 
-3. **Build the Docker image**:
-   ```
-   docker build -t satisfactory-arm64 .
-   ```
-
-4. **Start the server**:
+3. **Start the server**:
    ```
    docker compose up -d
    ```

@@ -1,6 +1,6 @@
 services:
   satisfactory-server:
-    image: 'satisfactory-arm64'
+    image: 'pietrotambu/satisfactory-arm64'
     container_name: 'satisfactory-server'
     ports:
       - '7777:7777/udp'
