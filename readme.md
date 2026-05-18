@@ -35,6 +35,8 @@ This Docker container runs a Satisfactory dedicated server on ARM64 architecture
    docker compose up -d
    ```
 
+   On first start, SteamCMD (~5 MB) and the game server (~5 GB) are downloaded automatically. Subsequent starts skip the download unless a game update is available.
+
 5. **Open the required ports**:
 
    | Protocol | Port |

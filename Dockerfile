@@ -40,11 +40,6 @@ RUN CC=clang CXX=clang++ cmake \
 RUN useradd -m steam && \
     sudo -u steam bash -c "unbuffer FEXRootFSFetcher -y -x"
 
-# Download SteamCMD
-USER steam
-WORKDIR /home/steam/Steam
-RUN curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-
 
 FROM ubuntu:24.04
 SHELL ["/bin/bash", "-c"]
@@ -62,7 +57,6 @@ COPY --from=builder /usr/bin/FEX* /usr/bin/
 RUN useradd -m steam
 
 COPY --from=builder --chown=steam:steam /home/steam/.fex-emu /home/steam/.fex-emu
-COPY --from=builder --chown=steam:steam /home/steam/Steam /home/steam/Steam
 
 USER steam
 WORKDIR /home/steam
