@@ -54,7 +54,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy FEX binaries from builder
 COPY --from=builder /usr/bin/FEX* /usr/bin/
 
-RUN userdel -r ubuntu && useradd -m -u 1000 steam
+RUN userdel -r ubuntu && useradd -m -u 1000 steam && \
+    mkdir /home/steam/Steam && chown steam:steam /home/steam/Steam
 
 COPY --from=builder --chown=steam:steam /home/steam/.fex-emu /home/steam/.fex-emu
 
