@@ -37,7 +37,7 @@ RUN CC=clang CXX=clang++ cmake \
     ninja && ninja install && ninja binfmt_misc
 
 # Install FEX root FS
-RUN useradd -m steam && \
+RUN userdel -r ubuntu && useradd -m -u 1000 steam && \
     sudo -u steam bash -c "unbuffer FEXRootFSFetcher -y -x"
 
 
@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy FEX binaries from builder
 COPY --from=builder /usr/bin/FEX* /usr/bin/
 
-RUN useradd -m steam
+RUN userdel -r ubuntu && useradd -m -u 1000 steam
 
 COPY --from=builder --chown=steam:steam /home/steam/.fex-emu /home/steam/.fex-emu
 
