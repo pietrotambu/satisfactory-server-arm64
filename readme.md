@@ -1,104 +1,80 @@
 # Satisfactory Dedicated Server for ARM64 (Docker Container)
 
-This Docker container provides a dedicated server for running Satisfactory on ARM64 architecture. It is based on [nitrog0d/palworld-arm64](https://github.com/nitrog0d/palworld-arm64).
-
----
-# !!! IMPORTANT (Updated for 1.1)!!!
-
-The server now appears to be running without crashing! The previous conveyor belt–related crash no longer occurs. 
-That said, further testing is needed to fully confirm overall stability.
-
----
+This Docker container runs a Satisfactory dedicated server on ARM64 architecture using [FEX-Emu](https://github.com/FEX-Emu/FEX) for x86 emulation. Based on [nitrog0d/palworld-arm64](https://github.com/nitrog0d/palworld-arm64).
 
 ## Getting Started
 
-1. **Download or Clone Repository**:
-   Download or clone this repository to your desired folder, for example, `satisfactory-server`.
-
-2. **Set Up Permissions**:
-   Create a folder named `satisfactory` and `config` (your savegame and server config will be stored in there) and grant full permissions to it:
-
-   - Using `chmod`:
-     ```
-     sudo chmod 777 satisfactory
-     sudo chmod 777 config
-     sudo chmod 777 init-server.sh
-     sudo chmod +x init-server.sh
-     ```
-   - Using `chown` (replace **USER_ID:GROUP_ID** with the desired user's IDs, for example, `1000:1000`):
-     ```
-     sudo chown -R USER_ID:GROUP_ID satisfactory
-     sudo chown -R USER_ID:GROUP_ID config
-     ```
-     (On Oracle Cloud Infrastructure (OCI), by default, the user with the ID `1000:1000` is `opc`. However, since this user is primarily intended for the setup process, it is advisable to utilize the `ubuntu` user with IDs `1001:1001`)
-
-3. **Build the Docker Image**:
-   Run the build script:
-
+1. **Clone the repository**:
    ```
-   sh build.sh
+   git clone <repo-url>
+   cd satisfactory-server-arm64
    ```
 
-   If execution permission is denied, grant it:
+2. **Create data directories and set permissions**:
 
    ```
-   chmod +x build.sh
+   mkdir -p satisfactory config
+   sudo chmod 777 satisfactory config
+   sudo chmod +x init-server.sh
    ```
 
-4. **Run the Docker Image**:
-   After the build process completes, start the Docker image either by running:
-
+   Or with `chown` (replace `USER_ID:GROUP_ID` with your user's IDs, e.g. `1000:1000`):
    ```
-   sh run.sh
+   sudo chown -R USER_ID:GROUP_ID satisfactory config
    ```
 
-   Or via Docker Compose in detached mode:
+   > **Oracle Cloud (OCI):** The `opc` user has IDs `1000:1000`. The `ubuntu` user uses `1001:1001`.
 
+3. **Build the Docker image**:
    ```
-   sudo docker compose up -d
+   docker build -t satisfactory-arm64 .
    ```
 
-5. **Open Necessary Ports**:
-   The following ports must be opened for the server to function properly:
+4. **Start the server**:
+   ```
+   docker compose up -d
+   ```
 
-   - TCP: `7777`, `8888`
-   - UDP: `7777`
-     Ensure these ports are open using the Linux firewall of your choice and also within the Security List of the Oracle Cloud Infrastructure Network.
+5. **Open the required ports**:
 
-6. **Default Port**:
-   The default port for the server is `7777`.
+   | Protocol | Port |
+   |----------|------|
+   | TCP + UDP | 7777 |
+   | TCP | 8888 |
 
-Now your Satisfactory Dedicated Server for ARM64 is ready!. Enjoy your gaming experience with friends.
+   Open these in your system firewall and, if using Oracle Cloud, in the VCN Security List.
 
-## Modifying Server Port Configuration
+## Managing the Server
 
-To alter the server port, you'll need to make adjustments in the `docker-compose.yml` file:
+| Action | Command |
+|--------|---------|
+| Stop | `docker compose down` |
+| View logs | `docker compose logs -f` |
+| Shell access | `docker exec -it satisfactory-server bash` |
 
-1. **docker-compose.yml**:
-   Edit this file to expose the desired ports outside of the container and set the `$EXTRA_PARAMS` environment variable to configure additional parameters for the `FactoryServer.sh` script.
+## Configuration
 
-Ensure that these changes are made accurately to reflect your desired server port configuration.
+### Server Parameters
 
-### $EXTRA_PARAMS Options (Note: Default values may have been changed by CSS)
+Edit `docker-compose.yml` to change ports or pass extra parameters to the server via `EXTRA_PARAMS`:
 
-| Option                     | Description                                                                                                                                                                                                                                           | Example                |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| -multihome=<ip address>    | Bind the server process to a specific IP address rather than all available interfaces                                                                                                                                                                 | -multihome=192.168.1.4 |
-| -ServerQueryPort=<portnum> | Override the Query Port the server uses. This is the port specified in the Server Manager in the client UI to establish a server connection. This can be set freely. The default port is UDP/15777.                                                   | -ServerQueryPort=15000 |
-| -BeaconPort=<portnum>      | Override the Beacon Port the server uses. As of Update 6, this port can be set freely. The default port is UDP/15000. If this port is already in use, the server will step up to the next port until an available one is found.                       | -BeaconPort=15001      |
-| -Port=<portnum>            | Override the Game Port the server uses. This is the primary port used to communicate game telemetry with the client. The default port is UDP/7777. If it is already in use, the server will step up to the next port until an available one is found. | -Port=15002            |
-| -DisablePacketRouting      | Startup argument for disabling the packet router (Automatically disabled with multihome)                                                                                                                                                              | -DisablePacketRouting  |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-multihome=<ip>` | Bind to a specific IP instead of all interfaces | all interfaces |
+| `-ServerQueryPort=<port>` | Query port (shown in the Server Manager UI) | UDP/15777 |
+| `-BeaconPort=<port>` | Beacon port | UDP/15000 |
+| `-Port=<port>` | Game port | UDP/7777 |
+| `-DisablePacketRouting` | Disable the packet router | — |
 
-### Example usage:
-
+Example:
 ```
-EXTRA_PARAMS=-⁠ServerQueryPort=17531 -⁠BeaconPort=17532 -Port=17533
+EXTRA_PARAMS=-ServerQueryPort=17531 -BeaconPort=17532 -Port=17533
 ```
 
-### Auto Update
+### Auto-update
 
-If you want to enable/disable check for game server updates, change the following to `true|false`:
-```
+Set whether the server checks for game updates on each startup:
+```yaml
 environment:
-    - ALWAYS_UPDATE_ON_START=true
+  - ALWAYS_UPDATE_ON_START=true
 ```

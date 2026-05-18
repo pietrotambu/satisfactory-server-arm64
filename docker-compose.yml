@@ -1,19 +1,24 @@
 services:
   satisfactory-server:
+    
     image: 'satisfactory-arm64'
     container_name: 'satisfactory-server'
+
     ports:
       - '7777:7777/udp'
       - '7777:7777/tcp'
       - '8888:8888/tcp'
     restart: 'unless-stopped'
+
     environment:
       - EXTRA_PARAMS=-log -unattended -ini:Engine:[HTTPServer.Listeners]:DefaultBindAddress=any
       - ALWAYS_UPDATE_ON_START=true
+    
     volumes:
       - './satisfactory:/satisfactory'
       - './config:/home/steam/.config/Epic'
       - ./init-server.sh:/home/steam/init-server.sh:rw
+    
     stdin_open: true
     tty: true
     entrypoint: /home/steam/init-server.sh
