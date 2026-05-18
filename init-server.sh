@@ -4,7 +4,18 @@ function setupSteamCMD() {
   mkdir -p /home/steam/Steam
   if [ ! -f "/home/steam/Steam/steamcmd.sh" ]; then
     echo 'Downloading SteamCMD...'
-    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - -C /home/steam/Steam
+    if ! curl -L --fail \
+        "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" \
+        -o /tmp/steamcmd.tar.gz; then
+      echo 'ERROR: Failed to download SteamCMD. Check network connectivity.'
+      exit 1
+    fi
+    if ! tar zxf /tmp/steamcmd.tar.gz -C /home/steam/Steam; then
+      echo 'ERROR: Failed to extract SteamCMD.'
+      rm -f /tmp/steamcmd.tar.gz
+      exit 1
+    fi
+    rm -f /tmp/steamcmd.tar.gz
   fi
 }
 
@@ -14,6 +25,11 @@ function installServer() {
 }
 
 function main() {
+  if [ ! -r "/satisfactory" ] || [ ! -w "/satisfactory" ]; then
+    echo 'ERROR: No read/write access to /satisfactory. Run: sudo chown -R 1000:1000 satisfactory/'
+    exit 1
+  fi
+
   setupSteamCMD
 
   # Fix for steamclient.so not being found
